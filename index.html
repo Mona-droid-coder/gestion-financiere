@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestion Financière</title>
+<style>
+body{font-family:Arial;background:#f1f5f1;margin:0;color:#183321}
+header{background:#14532d;color:white;padding:22px;text-align:center}
+main{max-width:650px;margin:auto;padding:15px}
+.card{background:white;padding:18px;margin:12px 0;border-radius:14px;box-shadow:0 2px 8px #ccc}
+input,select,button{width:100%;padding:13px;margin:7px 0;box-sizing:border-box;border-radius:8px;border:1px solid #ccc;font-size:16px}
+button{background:#166534;color:white;border:0;font-weight:bold}
+.stat{background:#e5f5e8;padding:14px;border-radius:10px;margin:7px 0}
+.amount{font-size:23px;font-weight:bold}
+.item{padding:12px;border-bottom:1px solid #ddd}
+.plus{color:green}.minus{color:red}
+</style>
+</head>
+<body>
+<header>
+<h2>GESTION FINANCIÈRE</h2>
+<p>Votre argent, votre contrôle</p>
+</header>
+<main>
+<div class="card">
+<h3>Mon tableau de bord</h3>
+<div class="stat">Solde disponible<div class="amount" id="solde">0,00 €</div></div>
+<div class="stat">Total des revenus<div class="amount" id="revenus">0,00 €</div></div>
+<div class="stat">Total des dépenses<div class="amount" id="depenses">0,00 €</div></div>
+</div>
+
+<div class="card">
+<h3>Nouvelle opération</h3>
+<select id="type">
+<option value="revenu">Entrée d'argent</option>
+<option value="depense">Dépense</option>
+</select>
+<input id="description" placeholder="Description de l'opération">
+<input id="montant" type="number" min="0.01" step="0.01" placeholder="Montant en euros">
+<input id="date" type="date">
+<button onclick="ajouter()">ENREGISTRER</button>
+</div>
+
+<div class="card">
+<h3>Historique des opérations</h3>
+<div id="historique">Aucune opération enregistrée.</div>
+</div>
+</main>
+
+<script>
+let operations=JSON.parse(localStorage.getItem("operations")||"[]");
+
+function euro(n){
+ return n.toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
+}
+
+function afficher(){
+ let revenus=0,depenses=0;
+ let liste=document.getElementById("historique");
+ liste.innerHTML="";
+ operations.forEach((op,i)=>{
+  if(op.type==="revenu") revenus+=op.montant;
+  else depenses+=op.montant;
+  let div=document.createElement("div");
+  div.className="item";
+  let titre=document.createElement("strong");
+  titre.textContent=op.description;
+  let detail=document.createElement("div");
+  detail.textContent=op.date;
+  let valeur=document.createElement("p");
+  valeur.className=op.type==="revenu"?"plus":"minus";
+  valeur.textContent=(op.type==="revenu"?"+":"-")+euro(op.montant);
+  let supprimer=document.createElement("button");
+  supprimer.textContent="Supprimer";
+  supprimer.onclick=()=>{operations.splice(i,1);sauver()};
+  div.append(titre,detail,valeur,supprimer);
+  liste.appendChild(div);
+ });
+ if(!operations.length) liste.textContent="Aucune opération enregistrée.";
+ document.getElementById("revenus").textContent=euro(revenus);
+ document.getElementById("depenses").textContent=euro(depenses);
+ document.getElementById("solde").textContent=euro(revenus-depenses);
+}
+
+function sauver(){
+ localStorage.setItem("operations",JSON.stringify(operations));
+ afficher();
+}
+
+function ajouter(){
+ let description=document.getElementById("description").value.trim();
+ let montant=Number(document.getElementById("montant").value);
+ let date=document.getElementById("date").value;
+ let type=document.getElementById("type").value;
+ if(!description||!date||!Number.isFinite(montant)||montant<=0){
+  alert("Veuillez remplir correctement tous les champs.");
+  return;
+ }
+ operations.push({description,montant,date,type});
+ document.getElementById("description").value="";
+ document.getElementById("montant").value="";
+ sauver();
+}
+afficher();
+</script>
+</body>
+  </html>
+  
